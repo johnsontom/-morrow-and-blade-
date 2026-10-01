@@ -1,0 +1,7 @@
+# Uploaded team photos live here. They are served as plain files and nothing
+# in this directory is ever executed, whatever it is named.
+php_flag engine off
+
+<FilesMatch "\.(?i:php|phtml|phar|php[0-9]|cgi|pl|py|sh|asp|aspx|jsp|exe)$">
+    Require all denied
+</FilesMatch>

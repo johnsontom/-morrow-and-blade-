@@ -1,0 +1,4 @@
+# Keep uploaded files out of version control; only the folder itself is tracked.
+*
+!.gitignore
+!.htaccess

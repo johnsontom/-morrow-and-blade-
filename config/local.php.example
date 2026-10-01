@@ -1,0 +1,8 @@
+﻿<?php
+// Copy this file to local.php and fill in your key to switch the assistant
+// from the built-in lookup engine to a language model. local.php is ignored
+// by git so the key never gets committed.
+
+// define('AI_API_KEY', 'sk-...');
+// define('AI_MODEL', 'gpt-4o-mini');
+// define('AI_ENDPOINT', 'https://api.openai.com/v1/chat/completions');
