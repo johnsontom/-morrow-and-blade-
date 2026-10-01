@@ -1,0 +1,14 @@
+# Keeping node_modules out of the build context matters for the PHP image too:
+# its context is the project root, so without this the whole dependency tree
+# would be sent to the daemon on every build.
+server/node_modules
+server/.env
+**/node_modules
+
+# Local and generated state that never belongs in an image.
+.env
+.git
+.gitignore
+storage/sessions
+storage/uploads
+assets/uploads

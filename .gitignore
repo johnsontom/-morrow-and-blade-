@@ -1,0 +1,26 @@
+# Node
+server/node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Local environment and secrets. .env.example is the committed template.
+.env
+server/.env
+config/local.php
+
+# Uploaded and session files: the folders are tracked, their contents are not.
+# storage/.gitignore and assets/uploads/.gitignore already cover their own
+# trees; these two lines are here so the intent is obvious from the root.
+storage/sessions/*
+storage/uploads/*
+
+# Scratch data left behind by local testing
+.tmp-*
+
+# Editors and operating system noise
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp

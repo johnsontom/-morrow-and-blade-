@@ -1,0 +1,131 @@
+# Morrow & Blade - the whole thing in Docker.
+#
+#   app         PHP 8.2 + Apache, serving this folder   -> http://localhost:8085
+#   api         Node 22 + Express REST API              -> http://localhost:8087
+#   db          MariaDB, schema imported on first start     -> localhost:3307
+#   phpmyadmin  a browser for that database              -> http://localhost:8086
+#
+# Every port is deliberately somewhere other than XAMPP: XAMPP's Apache keeps
+# 80 and its MariaDB keeps 3306. The copy in C:\xampp\htdocs is not touched by
+# any of this.
+#
+#   docker compose up -d --build     start everything
+#   docker compose down              stop (the database is kept)
+#   docker compose down -v           stop and wipe the database
+#
+# On the very first start database/morrow_and_blade.sql is imported into the
+# db_data volume. Later starts reuse the volume and skip the import, so
+# anything added through the site survives a restart.
+#
+# The PHP front end and the Express API are two front ends over one database:
+# the tables, the triggers and the seed data are shared, so a booking made in
+# one is visible in the other.
+
+name: morrow-and-blade
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    image: morrow-and-blade-app
+    container_name: morrow-blade-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Inside the compose network the database is simply "db" on its normal
+      # port; the 3307 only exists on the host side.
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-morrow_and_blade_php}
+      DB_USER: ${DB_USER:-salon}
+      DB_PASS: ${DB_PASS:-salon}
+    ports:
+      - "${APP_PORT:-8085}:80"
+    volumes:
+      - ./:/var/www/html
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: morrow-and-blade-api
+    container_name: morrow-blade-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: 8087
+      # Same shared database as the PHP service; "db" is the compose alias.
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-morrow_and_blade_php}
+      DB_USER: ${DB_USER:-salon}
+      DB_PASS: ${DB_PASS:-salon}
+      JWT_SECRET: ${JWT_SECRET:-change-me-before-you-deploy}
+      JWT_TTL: ${JWT_TTL:-2h}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+    ports:
+      - "${API_PORT:-8087}:8087"
+    healthcheck:
+      # The route touches the database, so a green container means the API can
+      # actually serve requests, not just that the process is up.
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8087/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  db:
+    image: mariadb:10.11
+    container_name: morrow-blade-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: ${DB_NAME:-morrow_and_blade_php}
+      MARIADB_USER: ${DB_USER:-salon}
+      MARIADB_PASSWORD: ${DB_PASS:-salon}
+    ports:
+      # host:container - the host side is deliberately not 3306.
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/morrow_and_blade.sql:/docker-entrypoint-initdb.d/10-morrow_and_blade.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin:5-apache
+    container_name: morrow-blade-pma
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      # The login form is pre-filled with the container's root account; the
+      # site itself never uses it.
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "${PMA_PORT:-8086}:80"
+
+volumes:
+  db_data:
