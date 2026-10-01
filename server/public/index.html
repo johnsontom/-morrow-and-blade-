@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Morrow &amp; Blade - API console</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body data-api="">
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark">M&amp;B</span>
+      <div>
+        <h1>Morrow &amp; Blade</h1>
+        <p>Node + Express API console</p>
+      </div>
+    </div>
+    <div class="session" id="session"></div>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+
+  <main id="view" class="view" aria-live="polite"></main>
+
+  <p class="footnote">
+    This page is served by the Express service and talks to it over <code>fetch()</code>.
+    The PHP site on <a href="http://localhost:8085">:8085</a> uses the same database.
+  </p>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <dialog id="auth-dialog">
+    <form class="dialog-form" id="auth-form" onsubmit="return false;">
+      <h2 id="auth-title">Sign in</h2>
+      <div class="seg" id="auth-mode">
+        <button type="button" class="on" data-mode="customer">Customer</button>
+        <button type="button" data-mode="staff">Staff</button>
+      </div>
+      <label>Email <input name="email" type="email" autocomplete="username" required></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+      <div id="register-fields" hidden>
+        <label>Full name <input name="name" type="text"></label>
+        <label>Phone <input name="phone" type="tel"></label>
+      </div>
+      <p class="error" id="auth-error" hidden></p>
+      <div class="actions">
+        <button type="button" class="ghost" data-close>Cancel</button>
+        <button type="button" class="ghost" id="auth-register" hidden>Create account</button>
+        <button type="button" class="primary" id="auth-submit">Sign in</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="booking-dialog">
+    <form class="dialog-form" id="booking-form" onsubmit="return false;">
+      <h2>Book an appointment</h2>
+      <label>Treatment <select name="service_id" id="booking-service" required></select></label>
+      <label>Team member <select name="barber_id" id="booking-barber" required></select></label>
+      <label>Date and time <input name="starts_at" id="booking-when" type="datetime-local" required></label>
+      <label>Notes <textarea name="notes" rows="2" maxlength="2000"></textarea></label>
+      <p class="error" id="booking-error" hidden></p>
+      <div class="actions">
+        <button type="button" class="ghost" data-close>Cancel</button>
+        <button type="button" class="primary" id="booking-submit">Book it</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="item-dialog">
+    <form class="dialog-form" id="item-form" onsubmit="return false;">
+      <h2 id="item-title">Add</h2>
+      <div id="item-fields"></div>
+      <p class="error" id="item-error" hidden></p>
+      <div class="actions">
+        <button type="button" class="ghost" data-close>Cancel</button>
+        <button type="button" class="primary" id="item-submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
