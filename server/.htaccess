@@ -1,0 +1,3 @@
+# The API is a Node service, not something Apache should ever hand out.
+# This mirrors the deny rules on config/, app/, database/ and storage/.
+Require all denied
